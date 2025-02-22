@@ -150,43 +150,49 @@ app.get('/',(req,res)=>{
 })
 // Login endpoint
 app.post("/login", async (req, res) => {
-    const { email, nickname, macAddress } = req.body;
-    let ipclient = getClientIp(req);
-    console.log(ipclient);
-    // console.log(os.networkInterfaces());
-    if (ipclient.startsWith('::')){
-        ipclient = getLocalIp();
-        console.log(ipclient)
-    }
-    try {
-        const serverMac = getServerMacAddress();
-        const serverIp = getLocalIp();
-        const newSession = await Session.create({
-            email,
-            nickname,
-            clientData: {
-                ip: ipclient,
-                macAddress
-            },
-            serverData: {
-                ip: serverIp,
-                macAddress: serverMac
-            },
-            status: "Activa",
-            inactivityTime: { hours: 0, minutes: 0, seconds: 0 }, // Inicializar a 0
-            durationTime:{ hours: 0, minutes: 0, seconds: 0},
-            createdAt: moment().tz("America/Mexico_City").toDate(), // <-- Fecha en CDMX
-            lastAccess: moment().tz("America/Mexico_City").toDate() // <-- Fecha en CDMX
-        });
+  const { email, nickname, macAddress } = req.body;
+  let ipclient = getClientIp(req);
 
-        res.status(201).json({
-            message: "Sesión creada exitosamente",
-            sessionId: newSession.sessionID
-        });
+  if (ipclient.startsWith('::')) {
+      ipclient = getLocalIp();
+  }
 
-    } catch (error) {
-        res.status(500).json({ message: "Error al crear sesión", error: error.message });
-    }
+  try {
+      const serverMac = getServerMacAddress();
+      const serverIp = getLocalIp();
+
+      // Genera el sessionId manualmente
+      const sessionId = uuidv4();
+      console.log("Generated sessionId:", sessionId); // Log para depuración
+
+      // Crea la sesión
+      const newSession = await Session.create({
+          sessionID: sessionId, // Asigna el sessionId generado
+          email,
+          nickname,
+          clientData: {
+              ip: ipclient,
+              macAddress,
+          },
+          serverData: {
+              ip: serverIp,
+              macAddress: serverMac,
+          },
+          status: "Activa",
+          inactivityTime: { hours: 0, minutes: 0, seconds: 0 },
+          durationTime: { hours: 0, minutes: 0, seconds: 0 },
+          createdAt: moment().tz("America/Mexico_City").toDate(),
+          lastAccess: moment().tz("America/Mexico_City").toDate(),
+      });
+
+      res.status(201).json({
+          message: "Sesión creada exitosamente",
+          sessionId: newSession.sessionID,
+      });
+  } catch (error) {
+      console.error("Error al crear sesión:", error); // Log del error
+      res.status(500).json({ message: "Error al crear sesión", error: error.message });
+  }
 });
     //Logout endpoint
 app.post("/logout", async (req, res) => {
