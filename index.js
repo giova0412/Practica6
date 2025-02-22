@@ -11,3 +11,6 @@ mongoose.connect(mongoGio)
     .catch((err) => {
         console.error('Error de conexión:', err);
     });
+    
+
+
