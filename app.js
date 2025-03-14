@@ -40,6 +40,12 @@ const sessions = {}
     }
     return ip;
 };*/
+app.use(cors({
+    origin: ['http://localhost:4200'], // Permitir peticiones desde Angular
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
 const getClientIp = (req) => {
     let ip = req.header("x-forwarded-for") || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket?.remoteAddress;
 
